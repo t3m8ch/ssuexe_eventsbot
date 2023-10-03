@@ -32,5 +32,3 @@ async def choosing_time(message: types.Message, state: FSMContext) -> None:
     # TODO: Schedule event
     await message.answer('Уведмоление о событии запланировано')
     await state.clear()
-
-
