@@ -7,22 +7,13 @@ import asyncio
 import logging
 
 from db_init import init_db
-from handlers import event_notify
+from handlers import event_notify, start_command
 from middlewares.service_middleware import ServiceMiddleware
 from middlewares.updating_user_middleware import UpdatingUserMiddleware
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 
 dp = Dispatcher()
-
-
-@dp.message(CommandStart())
-async def start_cmd(message: types.Message) -> None:
-    # TODO: Register user in db
-    await message.answer(
-        text='Hello, world!',
-        reply_markup=types.ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
-    )
 
 
 async def main() -> None:
@@ -33,6 +24,8 @@ async def main() -> None:
 
         dp.update.outer_middleware(ServiceMiddleware(connection))
         dp.update.outer_middleware(UpdatingUserMiddleware())
+
+        dp.include_router(start_command.router)
         dp.include_router(event_notify.router)
 
         await dp.start_polling(bot)

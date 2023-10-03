@@ -2,6 +2,8 @@ from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
+from services.user_service import UserService
+
 
 class EventNotifyStates(StatesGroup):
     entering_post = State()
@@ -12,7 +14,12 @@ router = Router()
 
 
 @router.message(F.text.lower() == 'уведомить о событии')
-async def notify_about_event(message: types.Message, state: FSMContext) -> None:
+async def notify_about_event(message: types.Message, state: FSMContext, user_service: UserService) -> None:
+    user = await user_service.get_user_by_id(message.from_user.id)
+    if user.role != 'ADMIN':
+        await message.answer('Вы не имеете доступ к этой команде')
+        return
+
     await message.answer(
         text='Введите текст и приложите фотографии, если требуется',
         reply_markup=types.ReplyKeyboardRemove(),

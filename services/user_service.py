@@ -8,7 +8,7 @@ class UserService:
         self._db = db
 
     async def create_or_update_user(self, *, user_id: int, full_name: str, user_name: str | None = None) -> UserModel:
-        async with self._db.execute('SELECT * FROM users') as cursor:
+        async with self._db.execute(f'SELECT * FROM users WHERE id = {user_id}') as cursor:
             row = await cursor.fetchone()
 
             if row is None:
@@ -19,4 +19,17 @@ class UserService:
                 await self._db.commit()
                 return UserModel(id=user_id, full_name=full_name, user_name=user_name, role='USER')
 
-            return UserModel(id=row['id'], full_name=row['full_name'], user_name=row['user_name'], role=row['role'])
+            return get_user_model_from_row(row)
+
+    async def get_user_by_id(self, user_id: int) -> UserModel:
+        async with self._db.execute(f'SELECT * FROM users WHERE id = {user_id}') as cursor:
+            row = await cursor.fetchone()
+
+            if row is None:
+                raise Exception(f'User with id = {user_id} not found')
+
+            return get_user_model_from_row(row)
+
+
+def get_user_model_from_row(row) -> UserModel:
+    return UserModel(id=row[0], full_name=row[1], user_name=row[2], role=row[3])
