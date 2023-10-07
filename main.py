@@ -8,6 +8,7 @@ import logging
 
 from db_init import init_db
 from handlers import event_notify, start_command
+from middlewares.album_middleware import AlbumMiddleware
 from middlewares.service_middleware import ServiceMiddleware
 from middlewares.updating_user_middleware import UpdatingUserMiddleware
 
@@ -24,6 +25,7 @@ async def main() -> None:
 
         dp.update.outer_middleware(ServiceMiddleware(connection))
         dp.update.outer_middleware(UpdatingUserMiddleware())
+        dp.message.middleware(AlbumMiddleware())
 
         dp.include_router(start_command.router)
         dp.include_router(event_notify.router)

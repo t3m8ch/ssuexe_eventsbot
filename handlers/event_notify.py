@@ -1,8 +1,14 @@
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
+from models.media_item_model import MediaItemModel
+from services.event_service import EventService
 from services.user_service import UserService
+from utils.media_mappers import map_media_message_to_dict
 
 
 class EventNotifyStates(StatesGroup):
@@ -28,14 +34,44 @@ async def notify_about_event(message: types.Message, state: FSMContext, user_ser
 
 
 @router.message(EventNotifyStates.entering_post)
-async def entering_post(message: types.Message, state: FSMContext) -> None:
-    await state.update_data(event_text=message.text)
-    await message.answer('Введите время, когда отослать уведомление, в формате: ')
+async def entering_post(
+        message: types.Message,
+        album: list[types.Message],
+        state: FSMContext,
+) -> None:
+    if not (message.text or message.caption) and not (message.photo or message.video):
+        await message.answer('Вы должны ввести текст или приложить фотографии')
+        return
+
+    if message.text:
+        await state.update_data(event_text=message.text)
+    elif message.caption:
+        await state.update_data(event_text=message.caption)
+    else:
+        await state.update_data(event_text=None)
+
+    await state.update_data(media_items=[map_media_message_to_dict(m) for m in album if m.photo or m.video])
+
+    await message.answer(
+        'Введите время по Саратову, когда отослать уведомление, в формате: DD.MM.YY HH:MM\n'
+        'Например: 07.10.23 13:40'
+    )
     await state.set_state(EventNotifyStates.choosing_time)
 
 
 @router.message(EventNotifyStates.choosing_time)
-async def choosing_time(message: types.Message, state: FSMContext) -> None:
-    # TODO: Schedule event
-    await message.answer('Уведмоление о событии запланировано')
+async def choosing_time(
+        message: types.Message,
+        state: FSMContext,
+        event_service: EventService,
+) -> None:
+    state_data = await state.get_data()
+
+    publish_at = datetime.strptime(message.text, '%m.%d.%y %H:%M').replace(tzinfo=ZoneInfo('Europe/Saratov'))
+    media_items = [MediaItemModel(i['file_id'], i['media_type']) for i in state_data['media_items']]
+    text = state_data['event_text']
+
+    await event_service.schedule_event(text=text, media_items=media_items, publish_at=publish_at)
+
+    await message.answer('Уведомление о событии запланировано')
     await state.clear()
