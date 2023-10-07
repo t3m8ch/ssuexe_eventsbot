@@ -29,3 +29,20 @@ class EventService:
         await self._db.commit()
 
         return EventModel(event_id, text, media_items, publish_at)
+
+    async def get_event_by_id(self, event_id: str) -> EventModel:
+        async with self._db.cursor() as cursor:
+            event_row = await (await cursor.execute(
+                'SELECT (id, text, publish_at) from events WHERE event_id = ?', event_id
+            )).fetchone()
+
+            if event_row is None:
+                raise Exception(f'Event with id = {event_id} not found')
+
+            media_items_rows = await (await cursor.execute(
+                'SELECT (file_id, media_type) from media_items WHERE event_id = ?', event_id
+            )).fetchmany()
+
+            return EventModel(id=event_row[0], text=event_row[1], publish_at=event_row[2], media=[
+                MediaItemModel(file_id=m[0], media_type=m[1]) for m in media_items_rows
+            ])
