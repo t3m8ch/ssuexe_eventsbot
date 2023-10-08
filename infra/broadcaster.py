@@ -35,8 +35,13 @@ class Broadcaster:
 
             for task in self._performed_tasks:
                 event = await self._event_service.get_event_by_id(task.event_id)
-                await self._send_event_service.send_event(event, task.chat_id)
-                self._completed_tasks.append(task)
+                try:
+                    await self._send_event_service.send_event(event, task.chat_id)
+                except Exception as e:
+                    task.error_message = str(e)
+                    self._error_tasks.append(task)
+                else:
+                    self._completed_tasks.append(task)
 
             self._performed_tasks = []
 
