@@ -30,6 +30,11 @@ class UserService:
 
             return get_user_model_from_row(row)
 
+    async def get_users(self) -> list[UserModel]:
+        async with self._db.execute('SELECT * FROM users') as cursor:
+            rows = await cursor.fetchmany()
+            return [get_user_model_from_row(row) for row in rows]
+
 
 def get_user_model_from_row(row) -> UserModel:
     return UserModel(id=row[0], full_name=row[1], user_name=row[2], role=row[3])

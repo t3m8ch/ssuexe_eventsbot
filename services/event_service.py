@@ -46,3 +46,6 @@ class EventService:
             return EventModel(id=event_row[0], text=event_row[1], publish_at=event_row[2], media=[
                 MediaItemModel(file_id=m[0], media_type=m[1]) for m in media_items_rows
             ])
+
+    async def get_events_with_datetime(self, from_: datetime, to: datetime) -> list[EventModel]:
+        raise NotImplementedError()
