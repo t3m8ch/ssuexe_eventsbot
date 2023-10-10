@@ -6,7 +6,7 @@ import sys
 from aiogram import Bot, Dispatcher
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
-from handlers import event_notify, start_command
+from handlers import event_notify, start_command, post_proposal
 from middlewares.album_middleware import AlbumMiddleware
 from middlewares.service_middleware import ServiceMiddleware
 from middlewares.updating_user_middleware import UpdatingUserMiddleware
@@ -32,6 +32,7 @@ async def main() -> None:
     dp.message.middleware(AlbumMiddleware())
 
     dp.include_router(start_command.router)
+    dp.include_router(post_proposal.router)
     dp.include_router(event_notify.router)
 
     await dp.start_polling(bot)

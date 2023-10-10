@@ -4,6 +4,7 @@ import aiosqlite
 from aiogram import BaseMiddleware, types
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
+from services.channel_service import ChannelService
 from services.event_service import EventService
 from services.user_service import UserService
 
@@ -21,4 +22,5 @@ class ServiceMiddleware(BaseMiddleware):
         async with self._session_maker() as session:
             data['user_service'] = UserService(session)
             data['event_service'] = EventService(session)
+            data['channel_service'] = ChannelService(session)
             return await handler(event, data)
