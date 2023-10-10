@@ -10,6 +10,6 @@ router = Router()
 @router.message(CommandStart())
 async def start_cmd(message: types.Message, user: UserModel) -> None:
     await message.answer(
-        text='Hello, world!',
+        text='Меню открыто',
         reply_markup=generate_menu_kb(user.role),
     )
