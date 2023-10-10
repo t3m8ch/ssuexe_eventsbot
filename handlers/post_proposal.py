@@ -18,7 +18,7 @@ class PostProposalStates(StatesGroup):
 async def choosing_channel(message: types.Message, state: FSMContext, channel_service: ChannelService):
     channels = await channel_service.get_all_channels()
 
-    await state.update_data(channels={channel.name:channel.chat_id for channel in channels})
+    await state.update_data(channels={channel.name: channel.chat_id for channel in channels})
     kb = [[types.KeyboardButton(text=channel.name)] for channel in channels]
 
     await state.set_state(PostProposalStates.choosing_channel)
@@ -45,11 +45,27 @@ async def entering_post(message: types.Message, state: FSMContext):
 
 
 @router.message(PostProposalStates.entering_post)
-async def send_post(message: types.Message, state: FSMContext, user: UserModel):
+async def send_post(message: types.Message, album: list[types.Message], state: FSMContext, user: UserModel):
     data = await state.get_data()
     chat_id_of_chosen_channel = data['chat_id_of_chosen_channel']
 
-    await message.send_copy(chat_id=chat_id_of_chosen_channel)
+    if message.text:
+        await message.send_copy(chat_id=chat_id_of_chosen_channel)
+        return
+
+    await message.bot.send_media_group(chat_id=chat_id_of_chosen_channel, media=[
+        types.InputMediaPhoto(media=m.photo[-1].file_id,
+                              caption=message.caption,
+                              caption_entities=message.caption_entities)
+        if m.photo else
+        types.InputMediaVideo(media=m.video.file_id,
+                              caption=message.caption,
+                              caption_entities=message.caption_entities)
+
+        for m in album
+        if m.photo or m.video
+    ])
+
     await message.answer('Благодарим за сотрудничество!', reply_markup=generate_menu_kb(user.role))
 
     await state.clear()
