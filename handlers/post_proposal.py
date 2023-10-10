@@ -4,6 +4,7 @@ from aiogram.fsm.state import StatesGroup, State
 
 from models.user_model import UserModel
 from services.channel_service import ChannelService
+from utils.album_resender import resend_album
 from utils.menu_kb_gen import generate_menu_kb
 
 router = Router()
@@ -49,23 +50,7 @@ async def send_post(message: types.Message, album: list[types.Message], state: F
     data = await state.get_data()
     chat_id_of_chosen_channel = data['chat_id_of_chosen_channel']
 
-    if message.text:
-        await message.send_copy(chat_id=chat_id_of_chosen_channel)
-        return
-
-    await message.bot.send_media_group(chat_id=chat_id_of_chosen_channel, media=[
-        types.InputMediaPhoto(media=m.photo[-1].file_id,
-                              caption=message.caption,
-                              caption_entities=message.caption_entities)
-        if m.photo else
-        types.InputMediaVideo(media=m.video.file_id,
-                              caption=message.caption,
-                              caption_entities=message.caption_entities)
-
-        for m in album
-        if m.photo or m.video
-    ])
-
+    await resend_album(message, album, chat_id_of_chosen_channel)
     await message.answer('Благодарим за сотрудничество!', reply_markup=generate_menu_kb(user.role))
 
     await state.clear()
