@@ -6,9 +6,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
 from models.media_item_model import MediaItemModel
+from models.user_model import UserModel
 from services.event_service import EventService
 from services.user_service import UserService
 from utils.media_mappers import map_media_message_to_dict
+from utils.menu_kb_gen import generate_menu_kb
 
 
 class EventNotifyStates(StatesGroup):
@@ -64,6 +66,7 @@ async def choosing_time(
         message: types.Message,
         state: FSMContext,
         event_service: EventService,
+        user: UserModel,
 ) -> None:
     state_data = await state.get_data()
 
@@ -73,5 +76,5 @@ async def choosing_time(
 
     await event_service.schedule_event(text=text, media_items=media_items, publish_at=publish_at)
 
-    await message.answer('Уведомление о событии запланировано')
+    await message.answer('Уведомление о событии запланировано', reply_markup=generate_menu_kb(user.role))
     await state.clear()
