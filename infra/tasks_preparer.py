@@ -12,9 +12,12 @@ class TasksPreparer:
         self._user_service = user_service
 
     async def prepare(self, current_time: datetime):
+        from_time = current_time.replace(second=0, microsecond=0)
+        to_time = from_time + timedelta(seconds=59)
+
         tasks = []
 
-        events = await self._event_service.get_events_with_datetime(current_time, current_time + timedelta(seconds=59))
+        events = await self._event_service.get_events_with_datetime(from_time, to_time)
         for e in events:
             users = await self._user_service.get_users()
             chats_ids = self._groups_ids + [u.id for u in users]

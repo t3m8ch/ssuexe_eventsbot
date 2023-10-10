@@ -1,39 +1,39 @@
 import aiosqlite
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user_model import UserModel
 
 
 class UserService:
-    def __init__(self, db: aiosqlite.Connection):
+    def __init__(self, db: AsyncSession):
         self._db = db
 
     async def create_or_update_user(self, *, user_id: int, full_name: str, user_name: str | None = None) -> UserModel:
-        async with self._db.execute(f'SELECT * FROM users WHERE id = {user_id}') as cursor:
-            row = await cursor.fetchone()
+        user = (await self._db.execute(select(UserModel).where(UserModel.id == user_id))).scalar()
 
-            if row is None:
-                await self._db.execute(
-                    f'INSERT INTO users(id, full_name, user_name, role) '
-                    f'values ({user_id}, \'{full_name}\', \'{user_name}\', \'USER\');'
-                )
-                await self._db.commit()
-                return UserModel(id=user_id, full_name=full_name, user_name=user_name, role='USER')
+        if not user:
+            user = UserModel(id=user_id, full_name=full_name, user_name=user_name)
+            self._db.add(user)
+            await self._db.commit()
+        else:
+            user.id = user_id
+            user.full_name = full_name
+            user.user_name = user_name
+            await self._db.commit()
 
-            return get_user_model_from_row(row)
+        return user
 
     async def get_user_by_id(self, user_id: int) -> UserModel:
-        async with self._db.execute(f'SELECT * FROM users WHERE id = {user_id}') as cursor:
-            row = await cursor.fetchone()
+        user = (await self._db.execute(select(UserModel).where(UserModel.id == user_id))).scalar()
 
-            if row is None:
-                raise Exception(f'User with id = {user_id} not found')
+        if not user:
+            raise Exception(f'User with id = {user_id} not found')
 
-            return get_user_model_from_row(row)
+        return user
 
     async def get_users(self) -> list[UserModel]:
-        async with self._db.execute('SELECT * FROM users') as cursor:
-            rows = await cursor.fetchmany()
-            return [get_user_model_from_row(row) for row in rows]
+        return list((await self._db.execute(select(UserModel))).scalars().all())
 
 
 def get_user_model_from_row(row) -> UserModel:
