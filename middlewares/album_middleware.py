@@ -19,7 +19,7 @@ class AlbumMiddleware(BaseMiddleware):
         data: dict[str, Any],
     ) -> Any:
         if not event.media_group_id:
-            if event.photo or event.video:
+            if event.photo or event.video or event.document or event.audio:
                 data['album'] = [event]
             else:
                 data['album'] = []
