@@ -14,3 +14,6 @@ class ChannelService:
     async def add_channel(self, *, name: str, chat_id: int):
         self._db.add(ChannelModel(name=name, chat_id=chat_id))
         await self._db.commit()
+
+    async def get_channel_by_id(self, channel_id: str):
+        return await self._db.get(ChannelModel, channel_id)

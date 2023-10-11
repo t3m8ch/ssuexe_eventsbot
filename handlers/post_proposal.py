@@ -7,6 +7,7 @@ from aiogram.types import User
 from models.user_model import UserModel
 from services.channel_service import ChannelService
 from utils.album_resender import resend_album
+from utils.channel_choosing import send_choosing_channel_message
 from utils.menu_kb_gen import generate_menu_kb
 
 router = Router()
@@ -20,16 +21,15 @@ class PostProposalStates(StatesGroup):
 
 @router.message(F.text.lower() == 'предложить пост')
 async def propose_post(message: types.Message, state: FSMContext, channel_service: ChannelService):
-    channels = await channel_service.get_all_channels()
-
-    await state.update_data(channels={channel.name: channel.chat_id for channel in channels})
-    kb = [[types.KeyboardButton(text=channel.name)] for channel in channels]
-
-    await state.set_state(PostProposalStates.choosing_channel)
+    kb = await send_choosing_channel_message(
+        fsm_context=state,
+        change_state_to=PostProposalStates.choosing_channel,
+        channel_service=channel_service
+    )
 
     await message.answer(
         'Выберите канал, для которого вы хотите предложить пост, используя клавиатуру ниже',
-        reply_markup=types.ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True),
+        reply_markup=kb,
     )
 
 
@@ -44,6 +44,24 @@ async def choose_channel(message: types.Message, state: FSMContext):
 
     await state.update_data(chat_id_of_chosen_channel=chat_id_of_chosen_channel)
     await state.update_data(channel_name=message.text)
+
+    kb = [
+        [types.KeyboardButton(text='Да, я хочу, чтобы меня упомянули, как автора')],
+        [types.KeyboardButton(text='Нет, я хочу остаться анонимным')],
+    ]
+    await message.answer('Хотите ли вы, чтобы вас упомянули, как автора, при публикации?',
+                         reply_markup=types.ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True))
+
+    await state.set_state(PostProposalStates.choosing_anon)
+
+
+@router.message(F.text.startswith('/start propose_post_'))
+async def propose_post_button(message: types.Message, state: FSMContext, channel_service: ChannelService):
+    channel_id = message.text.split('propose_post_')[1]
+    channel = await channel_service.get_channel_by_id(channel_id)
+
+    await state.update_data(chat_id_of_chosen_channel=channel.chat_id)
+    await state.update_data(channel_name=channel.name)
 
     kb = [
         [types.KeyboardButton(text='Да, я хочу, чтобы меня упомянули, как автора')],
@@ -116,6 +134,7 @@ async def add_channel_cmd(message: types.Message, user: UserModel, channel_servi
     await channel_service.add_channel(name=channel_name, chat_id=message.chat.id)
 
     await message.reply('Предложка добавлена!')
+
 
 def _get_author_name(user: User) -> str:
     return user.full_name + (f' (@{user.username})' if user.username else '')
