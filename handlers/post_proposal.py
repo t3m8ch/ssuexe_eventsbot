@@ -1,4 +1,5 @@
 from aiogram import Router, types, F
+from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import User
@@ -97,6 +98,24 @@ async def send_post(message: types.Message, album: list[types.Message], state: F
 
     await state.clear()
 
+
+@router.message(F.text.startswith('/add_channel') & F.chat.type.in_({'group', 'supergroup'}))
+async def add_channel_cmd(message: types.Message, user: UserModel, channel_service: ChannelService):
+    if user.role != 'ADMIN':
+        await message.reply('Эту команду имеет право использовать только администратор')
+        return
+
+    args = message.text.split()
+    if len(args) < 2:
+        await message.reply(
+            'Вы должны указать название канала.\n'
+            'Например: /add_channel КНиИТ в схемах и мемах'
+        )
+
+    channel_name = ' '.join(args[1:])
+    await channel_service.add_channel(name=channel_name, chat_id=message.chat.id)
+
+    await message.reply('Предложка добавлена!')
 
 def _get_author_name(user: User) -> str:
     return user.full_name + (f' (@{user.username})' if user.username else '')

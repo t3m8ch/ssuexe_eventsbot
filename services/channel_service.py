@@ -10,3 +10,7 @@ class ChannelService:
 
     async def get_all_channels(self) -> list[ChannelModel]:
         return list((await self._db.execute(select(ChannelModel))).scalars().all())
+
+    async def add_channel(self, *, name: str, chat_id: int):
+        self._db.add(ChannelModel(name=name, chat_id=chat_id))
+        await self._db.commit()
