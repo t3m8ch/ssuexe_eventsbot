@@ -4,6 +4,9 @@ import os
 import sys
 
 from aiogram import Bot, Dispatcher
+from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.fsm.storage.redis import RedisStorage
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from handlers import event_notify, start_command, post_proposal, post_with_proposal_button
@@ -14,11 +17,20 @@ from models.base import Base
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 SHOW_SQL = bool(os.getenv('SHOW_SQL', default=False))
-
-dp = Dispatcher()
+REDIS_HOST = os.getenv('REDIS_HOST')
+REDIS_PORT = os.getenv('REDIS_PORT', 6379)
+REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
 
 
 async def main() -> None:
+    if not REDIS_HOST:
+        storage = MemoryStorage()
+    else:
+        redis = Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD)
+        storage = RedisStorage(redis=redis)
+
+    dp = Dispatcher(storage=storage)
+
     bot = Bot(BOT_TOKEN)
 
     engine = create_async_engine('sqlite+aiosqlite:///db.sqlite', echo=SHOW_SQL)
