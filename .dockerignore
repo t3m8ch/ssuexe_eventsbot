@@ -1,0 +1,9 @@
+.dockerignore
+.git
+.idea
+Dockerfile
+.gitignore
+db.sqlite
+venv
+.env
+__pycache__

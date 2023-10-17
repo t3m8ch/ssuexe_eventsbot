@@ -33,7 +33,7 @@ async def main() -> None:
 
     bot = Bot(BOT_TOKEN)
 
-    engine = create_async_engine('sqlite+aiosqlite:///db.sqlite', echo=SHOW_SQL)
+    engine = create_async_engine('sqlite+aiosqlite:///data/db.sqlite', echo=SHOW_SQL)
     session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
     async with engine.begin() as connection:
