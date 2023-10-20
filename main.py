@@ -16,6 +16,7 @@ from middlewares.updating_user_middleware import UpdatingUserMiddleware
 from models.base import Base
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
+DB_URL = os.getenv('DB_URL')
 SHOW_SQL = bool(os.getenv('SHOW_SQL', default=False))
 REDIS_HOST = os.getenv('REDIS_HOST')
 REDIS_PORT = os.getenv('REDIS_PORT', 6379)
@@ -33,7 +34,7 @@ async def main() -> None:
 
     bot = Bot(BOT_TOKEN)
 
-    engine = create_async_engine('sqlite+aiosqlite:///data/db.sqlite', echo=SHOW_SQL)
+    engine = create_async_engine(DB_URL, echo=SHOW_SQL)
     session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
     async with engine.begin() as connection:
