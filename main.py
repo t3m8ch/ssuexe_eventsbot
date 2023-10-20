@@ -9,7 +9,7 @@ from aiogram.fsm.storage.redis import RedisStorage
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
-from handlers import event_notify, start_command, post_proposal, post_with_proposal_button
+from handlers import event_notify, start_command, post_proposal, post_with_proposal_button, cancel_command
 from middlewares.album_middleware import AlbumMiddleware
 from middlewares.service_middleware import ServiceMiddleware
 from middlewares.updating_user_middleware import UpdatingUserMiddleware
@@ -40,6 +40,7 @@ async def main() -> None:
     dp.update.outer_middleware(UpdatingUserMiddleware())
     dp.message.middleware(AlbumMiddleware())
 
+    dp.include_router(cancel_command.router)
     dp.include_router(post_proposal.router)
     dp.include_router(event_notify.router)
     dp.include_router(post_with_proposal_button.router)
