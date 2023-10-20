@@ -1,8 +1,7 @@
-import uuid
 from datetime import datetime
+from uuid import UUID
 from zoneinfo import ZoneInfo
 
-import aiosqlite
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -27,7 +26,7 @@ class EventService:
         await self._db.commit()
         return event
 
-    async def get_event_by_id(self, event_id: str) -> EventModel:
+    async def get_event_by_id(self, event_id: UUID) -> EventModel:
         stmt = select(EventModel).where(EventModel.id == event_id).options(selectinload(EventModel.media_items))
         model = (await self._db.execute(stmt)).scalar()
 

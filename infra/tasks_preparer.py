@@ -11,7 +11,7 @@ class TasksPreparer:
         self._event_service = event_service
         self._user_service = user_service
 
-    async def prepare(self, current_time: datetime):
+    async def prepare(self, current_time: datetime) -> list[BroadcasterTask]:
         from_time = current_time.replace(second=0, microsecond=0)
         to_time = from_time + timedelta(seconds=59)
 

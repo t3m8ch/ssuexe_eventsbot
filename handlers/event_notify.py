@@ -71,7 +71,7 @@ async def choosing_time(
     state_data = await state.get_data()
 
     try:
-        publish_at = datetime.strptime(message.text, '%m.%d.%y %H:%M').replace(tzinfo=ZoneInfo('Europe/Saratov'))
+        publish_at = datetime.strptime(message.text, '%d.%m.%y %H:%M').replace(tzinfo=ZoneInfo('Europe/Saratov'))
     except ValueError:
         await message.answer('Используйте необходимый формат даты')
         return

@@ -1,5 +1,6 @@
+from uuid import UUID
+
 from aiogram import Router, types, F
-from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import User
@@ -58,7 +59,7 @@ async def choose_channel(message: types.Message, state: FSMContext):
 @router.message(F.text.startswith('/start propose_post_'))
 async def propose_post_button(message: types.Message, state: FSMContext, channel_service: ChannelService):
     channel_id = message.text.split('propose_post_')[1]
-    channel = await channel_service.get_channel_by_id(channel_id)
+    channel = await channel_service.get_channel_by_id(UUID(channel_id))
 
     await state.update_data(chat_id_of_chosen_channel=channel.chat_id)
     await state.update_data(channel_name=channel.name)

@@ -1,6 +1,7 @@
 import asyncio
 from dataclasses import dataclass
 from datetime import datetime
+from uuid import UUID
 
 from services.event_service import EventService
 from services.send_event_service import SendEventService
@@ -11,7 +12,7 @@ OVERLIMIT_DELAY = 1.0
 
 @dataclass
 class BroadcasterTask:
-    event_id: str
+    event_id: UUID
     chat_id: int
     error_message: str | None = None
 

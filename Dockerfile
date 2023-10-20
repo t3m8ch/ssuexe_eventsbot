@@ -26,4 +26,4 @@ ENV PATH=/app/venv/bin:$PATH
 
 COPY . .
 
-CMD ["python3", "main.py"]
+CMD alembic upgrade head && python3 main.py

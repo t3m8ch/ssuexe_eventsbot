@@ -14,6 +14,7 @@ from services.send_event_service import SendEventService
 from services.user_service import UserService
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
+DB_URL = os.getenv('DB_URL')
 SHOW_SQL = bool(os.getenv('SHOW_SQL', default=False))
 GROUPS_IDS = [int(i) for i in os.getenv('GROUPS_IDS', default='').split(',') if i != '']
 
@@ -23,7 +24,7 @@ now = datetime.now()
 async def main():
     bot = Bot(BOT_TOKEN)
 
-    engine = create_async_engine('sqlite+aiosqlite:///db.sqlite', echo=SHOW_SQL)
+    engine = create_async_engine(DB_URL, echo=SHOW_SQL)
     session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
     async with session_maker() as session:

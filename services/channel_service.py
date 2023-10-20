@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,5 +17,5 @@ class ChannelService:
         self._db.add(ChannelModel(name=name, chat_id=chat_id))
         await self._db.commit()
 
-    async def get_channel_by_id(self, channel_id: str):
+    async def get_channel_by_id(self, channel_id: UUID):
         return await self._db.get(ChannelModel, channel_id)

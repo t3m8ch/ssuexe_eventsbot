@@ -13,7 +13,6 @@ from handlers import event_notify, start_command, post_proposal, post_with_propo
 from middlewares.album_middleware import AlbumMiddleware
 from middlewares.service_middleware import ServiceMiddleware
 from middlewares.updating_user_middleware import UpdatingUserMiddleware
-from models.base import Base
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 DB_URL = os.getenv('DB_URL')
@@ -36,9 +35,6 @@ async def main() -> None:
 
     engine = create_async_engine(DB_URL, echo=SHOW_SQL)
     session_maker = async_sessionmaker(engine, expire_on_commit=False)
-
-    async with engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all)
 
     dp.update.outer_middleware(ServiceMiddleware(session_maker))
     dp.update.outer_middleware(UpdatingUserMiddleware())
